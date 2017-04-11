@@ -57,11 +57,116 @@
 				</section>
 
 				<section>
-					<h2>Hello There</h2>
-					<p>
-						reveal.js enables you to create beautiful interactive slide decks using HTML. This presentation will show you examples of what it can do.
-					</p>
+					<h2>Why this talk?</h2>
+					<ul>
+						<li>...</li>
+					</ul>
 				</section>
+
+				<section>
+					<h2>My platform</h2>
+					<ul>
+						<li>Real hardware</li>
+						<li>Installed with TripleO</li>
+						<li>72 servers in 2 racks</li>
+						<li>1 infrastructure server (undercloud)</li>
+						<li>3 controllers</li>
+						<li>68 computes</li>
+						<li>Nokia Airframe servers</li>
+					    <ul>
+                            <li>48 CPU with Hyper-Threading enabled</li>
+                            <li>256G RAM</li>
+                        </ul>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Process context switching and CPU hyper-threading</h2>
+					<ul>
+						<li>Real hardware</li>
+						<li>Installed with TripleO</li>
+						<li>72 servers in 2 racks</li>
+						<li>1 infrastructure server (undercloud)</li>
+						<li>3 controllers</li>
+						<li>68 computes</li>
+						<li>Nokia AirFrame servers</li>
+					    <ul>
+                            <li>48 CPU with HT enabled</li>
+                            <li>256G RAM</li>
+                        </ul>
+					</ul>
+				</section>
+
+				<section>
+					<h2>CPU Hyper-Threading</h2>
+                    <p>"To be or not to be?" type of question
+                    <figure><img width="600"
+                                 height="300"
+                                 data-src="img/tobe.jpeg"
+                                 alt="(source: flickr.com)">
+                        <figcaption><blockquote>HT off or HT on? <br/>
+                                                on computes? on controllers?
+                        </blockquote></figcaption>
+                    </figure>
+                    </p>
+				</section>
+
+				<section>
+					<h2>CPU Hyper-Threading</h2>
+                    <p>How does it really work?</p>
+				</section>
+
+				<section>
+					<h2>CPU Hyper-Threading</h2>
+					<p>On idle controller I've got:
+					    <ul>
+                            <li>idle controller load 4-10</li>
+                            <li>between 16-45k CPU context switches per second</li>
+                            <li>over 1100 existing tasks (processes, threads)</li>
+                        </ul>
+                    </p>
+				</section>
+
+				<section>
+					<h2>Load on controllers</h2>
+                    <p><img data-src="img/controller0.load.png" alt="">
+                    <img data-src="img/controller1.load.png" alt=""></p>
+				</section>
+
+				<section>
+					<h2>Processes on controllers</h2>
+                    <p><img data-src="img/controller0.all.tasks.png" alt="">
+                    <img data-src="img/controller1.all.tasks.png" alt=""></p>
+				</section>
+
+				<section>
+					<h2>Running processes</h2>
+                    <p><img data-src="img/controller0.running.tasks.png" alt="">
+                    <img data-src="img/controller0.running.tasks.png" alt=""></p>
+                    <p><small>* We have 48 CPUs</br>
+                              ** Graph scaled to 48 CPUs</small></p>
+				</section>
+
+				<section>
+					<h2>CPU Hyper-Threading</h2>
+                    <p>How does it really work?</p>
+				</section>
+
+				<section>
+					<h2>Reduce number of API workers</h2>
+                    <p>Sounds controversial, isn't it?</br>
+                       But this is what I've got after:
+					    <ul>
+                            <li>reduce number of existing tasks to 800 (processes, threads)</li>
+                            <li>CPU context switches dropped to 10-25k</li>
+                            <li>reduce load of idle controller by half (!!!)</li>
+                            <li>no noticeable difference in speed of API responses</li>
+                        </ul>
+                    </p>
+				</section>
+
+
+
 			</div>
 
 		</div>
