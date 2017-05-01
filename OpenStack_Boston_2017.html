@@ -58,9 +58,17 @@
 
 				<section>
 					<h2>Why this talk?</h2>
-					<ul>
-						<li>...</li>
-					</ul>
+                    <p class="fragment fade-up">Know your workload!</p>
+                    <p class="fragment fade-up">What the hell my controller is doing?</p>
+                    <p class="fragment fade-up">What the hell my controller is doing?</p>
+                    <p class="fragment fade-up">All apologies - content modification</p>
+				</section>
+
+				<section>
+					<h2>Key takeaways</h2>
+                    <p class="fragment fade-up">Someting what you know but you've never read it that way? [top]</p>
+                    <p class="fragment fade-up">[hyperthreading]</p>
+                    <p class="fragment fade-up">OpenStack services' workers</p>
 				</section>
 
 				<section>
@@ -154,14 +162,13 @@
 
 				<section>
 					<h2>Reduce number of API workers</h2>
-                    <p>Sounds controversial, isn't it?</br>
+                    <p class="fragment fade-up">Sounds controversial, isn't it?</p>
+                    <p class="fragment fade-up">
                        But this is what I've got after:
-					    <ul>
-                            <li>reduce number of existing tasks to 800 (processes, threads)</li>
-                            <li>CPU context switches dropped to 10-25k</li>
-                            <li>reduce load of idle controller by half (!!!)</li>
-                            <li>no noticeable difference in speed of API responses</li>
-                        </ul>
+                      <p class="fragment fade-up">reduce number of existing tasks to 800 (processes, threads)</p>
+                      <p class="fragment fade-up">CPU context switches dropped to 10-25k</p>
+                      <p class="fragment fade-up">reduce load of idle controller by half (!!!)</p>
+                      <p class="fragment fade-up">no noticeable difference in speed of API responses</p>
                     </p>
 				</section>
 
@@ -173,7 +180,128 @@
 				<section>
 					<h2>CPU C and P states</h2>
                     <p>How does it really work?</p>
+                    <p>processor.max_cstate=0 intel_idle.max_cstate=0</p>
 				</section>
+
+				<section>
+					<h2>CPU C and P states</h2>
+                    <p>processor.max_cstate=0 intel_idle.max_cstate=0</p>
+				</section>
+
+
+                <section>
+					<h2>blktrace</h2>
+                    <p class="fragment fade-up">So what is blktrace?</p>
+                    <p class="fragment fade-up">It generates traces of the I/O traffic on block devices</p>
+                    <p class="fragment fade-up">Kind of strace for kernel IO subsystem</p>
+				</section>
+
+                <section>
+					<h2>blktrace</h2>
+					<pre>Simple usage example:<code class="hljs" data-trim contenteditable>
+mkdir /home/blktrace_data 
+mount -t tmpfs -o size=4G tmpfs /home/blktrace_data 
+cd /home/blktrace_data 
+blktrace -d /dev/sda -o blktrace.sda 
+					</code></pre>
+				</section>
+
+                <section>
+					<h2>blktrace</h2>
+					<p>Process collected data with blkparse and btt</p>
+					<pre>Output example:<code class="hljs" data-trim contenteditable>
+8,0   21 42   1.062957473 13346  I  WS 6298096 + 1024 [mysqld]
+8,0   21 43   1.062957727 13346  I  WS 6299120 + 1024 [mysqld]
+8,0   38 3    1.084362511 10509  Q  WS 745497296 + 16 [mongod]
+8,0   38 8    1.084367140 10509  D  WS 745497296 + 16 [mongod]
+8,0   22 2    1.138026726 13346  Q WSM 4738447 + 7 [mysqld]
+8,0   22 3    1.138027999 13346  G WSM 4738447 + 7 [mysqld]
+8,0   22 5    1.138029018 13346  I WSM 4738447 + 7 [mysqld]
+8,0   1  1904 1.138074893   930  D   W 67843304 + 8 [systemd-journal]
+					</code></pre>
+				</section>
+
+
+                <section>
+					<h2>blktrace - how to read that cryptic staff?!</h2>
+					<pre>blktrace_api.h - trace actions<code class="hljs" data-trim contenteditable>
+Q  __BLK_TA_QUEUE ,  	  /* queued */
+B  __BLK_TA_BACKMERGE,    /* back merged to existing rq */
+F  __BLK_TA_FRONTMERGE,   /* front merge to existing rq */
+G  __BLK_TA_GETRQ,        /* allocated new request */
+S  __BLK_TA_SLEEPRQ,      /* sleeping on rq allocation */
+R  __BLK_TA_REQUEUE,      /* request requeued */
+I  __BLK_TA_ISSUE,        /* sent to driver */
+C  __BLK_TA_COMPLETE,     /* completed by driver */
+P  __BLK_TA_PLUG,         /* queue was plugged */
+U  __BLK_TA_UNPLUG_IO,    /* queue was unplugged by io */
+T  __BLK_TA_UNPLUG_TIMER, /* queue was unplugged by timer */
+   __BLK_TA_INSERT,       /* insert request */
+   __BLK_TA_SPLIT,        /* bio was split */
+   __BLK_TA_BOUNCE,       /* bio was bounced */
+R  __BLK_TA_REMAP,        /* bio was remapped */
+A  __BLK_TA_ABORT,        /* request aborted */
+   __BLK_TA_DRV_DATA,     /* binary driver data */
+
+
+              barrier: barrier attribute
+              complete: completed by driver
+              fs: requests
+              issue: issued to driver
+              pc: packet command events
+              queue: queue operations
+              read: read traces
+              requeue: requeue operations
+              sync: synchronous attribute
+              write: write traces
+              notify: trace messages
+              drv_data: additional driver specific trace
+
+
+					</code></pre>
+				</section>
+
+                <section>
+					<h2>blktrace - how to read that cryptic staff?!</h2>
+					<pre>blktrace_api.h - trace categories<code class="hljs" data-trim contenteditable>
+R     BLK_TC_READ     /* reads */
+W     BLK_TC_WRITE    /* writes */
+F     BLK_TC_FLUSH    /* flush */
+S     BLK_TC_SYNC     /* sync */
+Q     BLK_TC_QUEUE    /* queueing/merging */
+      BLK_TC_REQUEUE  /* requeueing */
+I     BLK_TC_ISSUE    /* issue */
+C     BLK_TC_COMPLETE /* completions */
+      BLK_TC_FS       /* fs requests */
+P     BLK_TC_PC       /* pc requests */
+N(?)  BLK_TC_NOTIFY   /* special message */
+A     BLK_TC_AHEAD    /* readahead */
+M     BLK_TC_META     /* metadata */
+D     BLK_TC_DISCARD  /* discard requests */
+      BLK_TC_DRV_DATA /* binary driver data */
+U     BLK_TC_FUA      /* fua requests */
+E(?)  BLK_TC_END      /* we've run out of bits! */
+					</code></pre>
+				</section>
+
+                <section>
+					<h2>blktrace - how to read that cryptic staff?!</h2>
+                    <p>
+					<ul>
+						<li>FUA - Forced Unit Access. The REQ_FUA flag (...)
+							will make sure that I/O completion for this request
+							is only signaled after the data has been committed
+							to non-volatile storage.</li>
+					</ul>
+					</p>
+				</section>
+
+                <section>
+					https://access.redhat.com/support/cases/#/case/01822060
+                </section>
+
+
+
 
 			</div>
 
