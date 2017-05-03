@@ -18,7 +18,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 		<link rel="stylesheet" href="css/reveal.css">
-		<link rel="stylesheet" href="css/theme/black.css" id="theme">
+		<link rel="stylesheet" href="css/theme/radek.css" id="theme">
 
 		<!-- Theme used for syntax highlighting of code -->
 		<link rel="stylesheet" href="lib/css/zenburn.css">
@@ -65,13 +65,6 @@
 				</section>
 
 				<section>
-					<h2>Key takeaways</h2>
-                    <p class="fragment fade-up">Someting what you know but you've never read it that way? [top]</p>
-                    <p class="fragment fade-up">[hyperthreading]</p>
-                    <p class="fragment fade-up">OpenStack services' workers</p>
-				</section>
-
-				<section>
 					<h2>My platform</h2>
 					<ul>
 						<li>Real hardware</li>
@@ -112,7 +105,7 @@
                                  height="300"
                                  data-src="img/tobe.jpeg"
                                  alt="(source: flickr.com)">
-                        <figcaption><blockquote>HT off or HT on? <br/>
+                        <figcaption><blockquote>HT on or HT off? <br/>
                                                 on computes? on controllers?
                         </blockquote></figcaption>
                     </figure>
@@ -136,6 +129,33 @@
 				</section>
 
 				<section>
+					<section>
+					    <h2>CPU Hyper-Threading</h2>
+                        <p><small> Intel Intel® 64 and IA-32 Architectures
+                            Software Developer’s Manual</small></p>
+                        <img data-src="img/CPU_HT.png" alt="CPU HT">
+					</section>
+					<section>
+                        <p>
+                        Hyper-Threaded CPU core split into two logical cores
+                           each of which has its own processor architectural
+                           state. Each logical processor can be individually
+                           halted, interrupted or directed to execute
+                           a specified thread, independently from the other
+                           logical processor sharing the same physical core.[7]
+
+                           logical processors in a hyper-threaded core share the execution resources
+                        </p>
+					</section>
+				</section>
+
+				<section>
+					<h2>Controller HT on/off</h2>
+                    <p><img data-src="img/cs_ht_on_off.png" alt=""/></p>
+				</section>
+
+
+				<section>
 					<h2>Load on controllers</h2>
                     <p><img data-src="img/controller0.load.png" alt="">
                     <img data-src="img/controller1.load.png" alt=""></p>
@@ -155,10 +175,6 @@
                               ** Graph scaled to 48 CPUs</small></p>
 				</section>
 
-				<section>
-					<h2>CPU Hyper-Threading</h2>
-                    <p>How does it really work?</p>
-				</section>
 
 				<section>
 					<h2>Reduce number of API workers</h2>
@@ -297,12 +313,19 @@ E(?)  BLK_TC_END      /* we've run out of bits! */
 				</section>
 
                 <section>
-					https://access.redhat.com/support/cases/#/case/01822060
+                    ????
                 </section>
 
 
-
-
+				<section>
+					<h2>Key takeaways</h2>
+                    <p class="fragment fade-up">Someting what you know but you've never read it that way? [top]</p>
+                    <p class="fragment fade-up">[hyperthreading]</p>
+                    <p class="fragment fade-up">OpenStack services' workers</p>
+				</section>
+                <section>
+                    <h1>Q&A</h1>
+                </section>
 			</div>
 
 		</div>
