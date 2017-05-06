@@ -47,7 +47,7 @@
                     <h2>Advanced controller optimization<h2>
                     <h4>How to get the most of your controllers?</h4>
 					<p>
-						<small>Created by Radosław Śmigielski /
+						<small>by Radosław Śmigielski /
                             <a href="https://twitter.com/radoslaws">@radoslaws</a>
                     </p>
                     <p>
@@ -60,8 +60,8 @@
 					<h2>Why this talk?</h2>
                     <p class="fragment fade-up">Know your workload!</p>
                     <p class="fragment fade-up">What the hell my controller is doing?</p>
-                    <p class="fragment fade-up">What the hell my controller is doing?</p>
-                    <p class="fragment fade-up">All apologies - content modification</p>
+                    <p class="fragment fade-up">Default out of the box configs just work but are these optimal for you?</p>
+                    <p class="fragment fade-up">All apologies - agenda adjustments</p>
 				</section>
 
 				<section>
@@ -82,53 +82,89 @@
 				</section>
 
 				<section>
-					<h2>Process context switching and CPU hyper-threading</h2>
-					<ul>
-						<li>Real hardware</li>
-						<li>Installed with TripleO</li>
-						<li>72 servers in 2 racks</li>
-						<li>1 infrastructure server (undercloud)</li>
-						<li>3 controllers</li>
-						<li>68 computes</li>
-						<li>Nokia AirFrame servers</li>
+					<h2>My workload</h2>
+					<ol>
+                        <li>My VMs:
 					    <ul>
-                            <li>48 CPU with HT enabled</li>
-                            <li>256G RAM</li>
+                            <li>1 - 4 vCPU</li>
+                            <li>512M - 2G RAM</li>
+		    				<li>Cirros/CentOS/Fedora 24 images</li>
+			    			<li>4 - 8 NICc connected to each VM</li>
+			    			<li>Connected to IPv6 and IPv4 network</li>
                         </ul>
-					</ul>
+                        </li>
+                        <li>Heat complex stacks</li>
+                        <li>Burst VMs creation 100/200/300/400</li>
+					</ol>
 				</section>
 
-				<section>
-					<h2>CPU Hyper-Threading</h2>
-                    <p>"To be or not to be?" type of question
-                    <figure><img width="600"
-                                 height="300"
-                                 data-src="img/tobe.jpeg"
-                                 alt="(source: flickr.com)">
-                        <figcaption><blockquote>HT on or HT off? <br/>
-                                                on computes? on controllers?
-                        </blockquote></figcaption>
-                    </figure>
-                    </p>
-				</section>
-
-				<section>
-					<h2>CPU Hyper-Threading</h2>
-                    <p>How does it really work?</p>
-				</section>
-
-				<section>
+                <section>
 					<h2>CPU Hyper-Threading</h2>
 					<p>On idle controller I've got:
 					    <ul>
-                            <li>idle controller load 4-10</li>
-                            <li>between 16-45k CPU context switches per second</li>
-                            <li>over 1100 existing tasks (processes, threads)</li>
+                            <li>Idle controller load 4-10</li>
+                            <li>Between 40-50k CPU context switches per second</li>
+                            <li>Over 1100 existing tasks (processes, threads)</li>
                         </ul>
                     </p>
 				</section>
 
 				<section>
+					<h2>Load on controllers</h2>
+                    <p><img data-src="img/controller0.load.png" alt="">
+                    <img data-src="img/controller1.load.png" alt=""></p>
+				</section>
+				<section>
+					<h2>Processes on controllers</h2>
+                    <p><img data-src="img/controller0.all.tasks.png" alt="">
+                    <img data-src="img/controller1.all.tasks.png" alt=""></p>
+				</section>
+
+				<section>
+					<h2>Running processes</h2>
+                    <p><img data-src="img/controller0.running.tasks.png" alt="">
+                    <img data-src="img/controller0.running.tasks.png" alt=""></p>
+                    <p><small>* We have 48 CPUs</br>
+                              ** Graph scaled to 48 CPUs</small></p>
+				</section>
+				<section>
+				    <section>
+					<h2>Reduce number of API workers</h2>
+                    <p class="fragment fade-up">
+                    <img data-src="img/what-did-you-say_new.jpg" alt=""></p>
+                    <p class="fragment fade-up">
+                        Sounds controversial, isn't it?</p>
+				    </section>
+
+				    <section>
+                      <h2>After wokers reduction</h2>
+                      <p class="fragment fade-up">Reduce number of tasks to 800 (processes, threads)</p>
+                      <p class="fragment fade-up">CPU context switches dropped to 10-25k</p>
+                      <p class="fragment fade-up">Reduce load of idle controller by half (!!!)</p>
+                      <p class="fragment fade-up">No difference in speed of API responses</p>
+				    </section>
+				</section>
+
+				<section>
+				    <section>
+	    				<h2>CPU Hyper-Threading</h2>
+                        <p>"To be or not to be?" type of question
+                        <figure><img width="600"
+                                 height="300"
+                                 data-src="img/tobe.jpeg"
+                                 alt="(source: flickr.com)">
+                            <figcaption><blockquote>HT on or HT off? <br/>
+                                                on computes? on controllers?
+                            </blockquote></figcaption>
+                        </figure>
+                        </p>
+    				</section>
+
+		    		<section>
+			    		<h2>CPU Hyper-Threading</h2>
+                        <p>How does it really work?</p>
+    				</section>
+
 					<section>
 					    <h2>CPU Hyper-Threading</h2>
                         <p><small> Intel Intel® 64 and IA-32 Architectures
@@ -147,6 +183,13 @@
                            logical processors in a hyper-threaded core share the execution resources
                         </p>
 					</section>
+
+					<section>
+					    <ul>
+                            <li>Hardware support for context switching</li>
+                            <li>Still computationally expensive on Intel arch</li>
+                        </ul>
+					</section>
 				</section>
 
 				<section>
@@ -156,47 +199,79 @@
 
 
 				<section>
-					<h2>Load on controllers</h2>
-                    <p><img data-src="img/controller0.load.png" alt="">
-                    <img data-src="img/controller1.load.png" alt=""></p>
+				    <section>
+					    <h2>Keystone workers*</h2>
+					    <p>Old style config</p>
+                        <pre>/etc/keystone/keystone.conf<code class="hljs" data-trim contenteditable>
+                        [DEFAULT]
+                        public_workers=48
+                        admin_workers=48
+                        </code></pre>
+                        <p style="text-align: left;"><small>(*) Exception?</small></p>
+				    </section>
+				    <section>
+                        <h2>Keystone workers</h2>
+                        <p>How does it really work?</p>
+                        <img data-src="img/Keystone_WSGI_arch.png" alt=""/>
+                        <p style="text-align: left;"><small>WSGI - Web Server Gateway Interface</small></p>
+                    </section>
+                    <section>
+                        <h2>Why KS new architecture?</h2>
+                        <p class="fragment fade-up">Doing multiprocess/multithread apps is tough</p>
+                        <p class="fragment fade-up">Python GIL does not make things easier</p>
+                        <p class="fragment fade-up">Python concurrency frameworks suck on computation intensive workload</p>
+                        <p class="fragment fade-up">CPU intensive PKI and Fernet token formats</p>
+                        <p class="fragment fade-up">Apache and other web servers have solved this problem</p>
+                    </section>
+                    <section>
+                    <h2>New configuration</h2>
+                    <pre>/etc/httpd/conf.d/10-keystone_wsgi_admin.conf<code class="hljs" data-trim contenteditable>
+                    WSGIDaemonProcess keystone_admin \
+                        display-name=keystone-admin \
+                        group=keystone \
+                        processes=48 \
+                        threads=1 \
+                        user=keystone
+                    </code></pre>
+
+                    <pre>/etc/httpd/conf.d/10-keystone_wsgi_main.conf<code class="hljs" data-trim contenteditable>
+                    WSGIDaemonProcess keystone_main \
+                        display-name=keystone-main \
+                        group=keystone \
+                        processes=48 \
+                        threads=1 \
+                        user=keystone
+                    </code></pre>
+				    </section>
 				</section>
 
 				<section>
-					<h2>Processes on controllers</h2>
-                    <p><img data-src="img/controller0.all.tasks.png" alt="">
-                    <img data-src="img/controller1.all.tasks.png" alt=""></p>
-				</section>
-
-				<section>
-					<h2>Running processes</h2>
-                    <p><img data-src="img/controller0.running.tasks.png" alt="">
-                    <img data-src="img/controller0.running.tasks.png" alt=""></p>
-                    <p><small>* We have 48 CPUs</br>
-                              ** Graph scaled to 48 CPUs</small></p>
-				</section>
-
-
-				<section>
-					<h2>Reduce number of API workers</h2>
-                    <p class="fragment fade-up">Sounds controversial, isn't it?</p>
-                    <p class="fragment fade-up">
-                       But this is what I've got after:
-                      <p class="fragment fade-up">reduce number of existing tasks to 800 (processes, threads)</p>
-                      <p class="fragment fade-up">CPU context switches dropped to 10-25k</p>
-                      <p class="fragment fade-up">reduce load of idle controller by half (!!!)</p>
-                      <p class="fragment fade-up">no noticeable difference in speed of API responses</p>
-                    </p>
-				</section>
-
-				<section>
-					<h2>Keystone workers</h2>
-                    <p>How does it really work?</p>
-				</section>
-
-				<section>
+					<section>
 					<h2>CPU C and P states</h2>
                     <p>How does it really work?</p>
-                    <p>processor.max_cstate=0 intel_idle.max_cstate=0</p>
+                    <ol>
+                        <li>C-states<ul>
+                                <li>Put parts of CPU into idle state</li>
+                                <li>Switch off clock</li>
+                                <li>Switch off power</li>
+                                <li>No instructions executed</li>
+                            </ul></li>
+                        <li>P-states<ul>
+                                <li>running the processor at different voltage</li>
+                                <li>dynamic CPU clock frequency</li>
+                            </ul></li>
+                    </ol>
+					</section>
+					<section>
+                        <p>
+                        <img data-src="img/c-state-exit.png" alt="">
+                        <ol>
+                            <li>These C-State Entry/Exit Latencies are Intel estimates only and not processor specifications.</li>
+                            <li>It is assumed that package is in C0 when one of the core is active.</li>
+                                <li>Fast interrupt break mode is enabled if MSR_POWER_CTL.[4] = 1.</li>
+                        <ol>
+                        </p>
+					</section>
 				</section>
 
 				<section>
