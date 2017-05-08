@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Advanced controller optimization,
+               how to get the most of your controllers?</title>
+
+		<meta name="description"
+              content="Advanced controller optimization,
+                       how to get the most of your controllers?">
+		<meta name="author" content="Radosław Śmigielski">
+
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/radek.css" id="theme">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+                    <h2>Advanced controller optimization<h2>
+                    <h4>How to get the most of your controllers?</h4>
+					<p>
+                    <small>by Radosław Śmigielski/<a href="https://twitter.com/radoslaws">@radoslaws</a>/<a href="https://plus.google.com/+RadoslawSmigielski">G+</a>
+                        at <a href="https://networks.nokia.com/products/cloudband">Nokia CloudBand CBIS</a>
+                        </small>
+                    </p>
+                    <!--
+                    <p><small>
+                        <a href='https://www.openstack.org/summit/boston-2017/summit-schedule/events/17489/advanced-controller-optimization-how-to-get-the-most-of-your-controllers'>OpenStack session</a></small>
+					</p>
+                    -->
+				</section>
+
+				<section>
+					<h2>Why this talk?</h2>
+                    <p class="fragment fade-up">OpenStack is complex</p>
+                    <p class="fragment fade-up">OpenStack performance is even more complex</p>
+                    <p class="fragment fade-up">Share experiences</p>
+                    <p class="fragment fade-up">What the hell my controller plane is doing?</p>
+                    <p class="fragment fade-up">Default out of the box configs</p>
+                    <p class="fragment fade-up">Tips and tricks</p>
+                    <p class="fragment fade-up">Why and how?</p>
+                    <p class="fragment fade-up">All apologies - agenda adjustments</p>
+				</section>
+
+				<section>
+					<h2>My platform</h2>
+					<ul>
+						<li>Real hardware</li>
+						<li>72 servers in 2 racks</li>
+						<li>Nokia Airframe servers</li>
+					    <ul>
+                            <li>48 CPU with Hyper-Threading enabled</li>
+                            <li>256G RAM</li>
+                        </ul>
+						<li>Installed with TripleO</li>
+						<li>1 infrastructure server (undercloud)</li>
+						<li>Standard 3 controllers setup</li>
+						<li>68 computes</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>My workload</h2>
+					<ol>
+                        <li>My VMs:
+					    <ul>
+                            <li>1 - 4 vCPU</li>
+                            <li>512M - 2G RAM</li>
+		    				<li>Cirros/CentOS 7/Fedora 24 cloud images</li>
+			    			<li>4 - 8 NICc connected to each VM</li>
+			    			<li>Mixed stack IPv6 and IPv4 network</li>
+                        </ul>
+                        </li>
+                        <li>Heat complex stacks</li>
+                        <li>Burst VMs creation 100/200/300/400</li>
+                        <li>3000-3500 VMs</li>
+					</ol>
+				</section>
+
+                <section>
+					<h2>Fitst look</h2>
+					<p>Idle single controller
+					    <ul>
+                            <li>Over 1100 existing tasks (processes, threads)</li>
+                            <li>Controller load 4-15</li>
+                            <li>Between 40-50k CPU context switches per second</li>
+                        </ul>
+                    </p>
+				</section>
+
+				<section>
+    				<section>
+	    				<h2>Load on controllers</h2>
+                        <p><img data-src="img/controller0.load.png" alt="">
+                        <img data-src="img/controller1.load.png" alt=""></p>
+    				</section>
+	    			<section>
+		    			<h2>Processes on controllers</h2>
+                        <p><img data-src="img/controller0.all.tasks.png" alt="">
+                        <img data-src="img/controller1.all.tasks.png" alt=""></p>
+    				</section>
+				    <section>
+					    <h2>Running processes</h2>
+                        <p><img data-src="img/controller0.running.tasks.png" alt="">
+                        <img data-src="img/controller0.running.tasks.png" alt=""></p>
+                        <p><small>* We have 48 CPUs</br>
+                                  ** Graph scaled to 48 CPUs</small></p>
+				    </section>
+				</section>
+
+
+				<section>
+				    <section>
+					<h2>Reduce number of API workers?</h2>
+                    <p>
+                    <img data-src="img/what-did-you-say_new.jpg" alt=""></p>
+                    <p>
+                        Sounds controversial, isn't it?</p>
+				    </section>
+
+				    <section>
+                      <h2>After reduction by half</h2>
+                      <p>Reduce number of tasks to 900 (processes, threads)</p>
+                      <p>CPU context switches dropped to 10-25k</p>
+                      <p>Reduce load of idle controller by half (!!!)</p>
+                      <p>No difference in speed of API responses</p>
+                      <p>Still could handle over 600 concurrent API requests</p>
+                      <p>Exception: keystone (*)</p>
+				    </section>
+				</section>
+
+				<section>
+				    <section>
+	    				<h2>CPU Hyper-Threading</h2>
+                        <p>"To be or not to be?" type of question
+                        <figure><img width="600"
+                                 height="300"
+                                 data-src="img/tobe.jpeg"
+                                 alt="(source: flickr.com)">
+                            <figcaption><blockquote>HT on or HT off? <br/>
+                                                on computes? on controllers?
+                            </blockquote></figcaption>
+                        </figure>
+                        </p>
+    				</section>
+
+		    		<section>
+                        <h1>How does HT really work?</h1>
+    				</section>
+
+					<section>
+					    <h2>CPU Hyper-Threading</h2>
+                        <p><small>Intel® 64 and IA-32 Architectures
+                            Software Developer’s Manual</small></p>
+                        <img data-src="img/CPU_HT.png" alt="CPU HT">
+					</section>
+					<section>
+					    <ul>
+                            <li>Two logical proccessors</li>
+                            <li>Single execution engine - shared the execution resources</li>
+                            <li>Each logical CPU  has own set of regs</li>
+                            <li>Share L1 cache</li>
+                            <li>Common power saving</li>
+                            <li>Hardware support for context switching</li>
+                            <li>Still computationally expensive on Intel arch</li>
+                        </ul>
+					</section>
+    				<section>
+	    				<h2>Controller HT on/off</h2>
+                        <p><img data-src="img/cs_ht_on_off.png" alt=""/></p>
+			    	</section>
+				</section>
+
+
+				<section>
+				    <section>
+					    <h2>Keystone workers*</h2>
+					    <p>Old style config</p>
+                        <pre>/etc/keystone/keystone.conf<code class="hljs" data-trim contenteditable>
+                        [DEFAULT]
+                        public_workers=48
+                        admin_workers=48
+                        </code></pre>
+                        <p style="text-align: left;"><small>(*) Exception?</small></p>
+				    </section>
+                    <section>
+                        <h2>Why KS new architecture?</h2>
+                        <p class="fragment fade-up">Doing multiprocess/multithread apps is tough</p>
+                        <p class="fragment fade-up">Python GIL does not make things easier</p>
+                        <p class="fragment fade-up">Python concurrency frameworks don't work on computation intensive workload</p>
+                        <p class="fragment fade-up">CPU intensive PKI and Fernet token formats</p>
+                        <p class="fragment fade-up">Web servers have solved this problem</p>
+                    </section>
+				    <section>
+                        <h2>Keystone new architecture</h2>
+                        <img data-src="img/Keystone_WSGI_arch.png" alt=""/>
+                        <p style="text-align: left;"><small>WSGI - Web Server Gateway Interface</small></p>
+                    </section>
+				    <section>
+                        <img data-src="img/wqpgw.jpg" alt=""  style="height: 80%; max-height: 600px;"/>
+                    </section>
+
+                    <section>
+                    <h2>New configuration</h2>
+                    <pre>/etc/httpd/conf.d/10-keystone_wsgi_admin.conf<code class="hljs" data-trim contenteditable>
+                    WSGIDaemonProcess keystone_admin \
+                        display-name=keystone-admin \
+                        group=keystone \
+                        processes=48 \
+                        threads=1 \
+                        user=keystone
+                    </code></pre>
+
+                    <pre>/etc/httpd/conf.d/10-keystone_wsgi_main.conf<code class="hljs" data-trim contenteditable>
+                    WSGIDaemonProcess keystone_main \
+                        display-name=keystone-main \
+                        group=keystone \
+                        processes=48 \
+                        threads=1 \
+                        user=keystone
+                    </code></pre>
+                    <p>And more OpenStack services heading this direction</p>
+				    </section>
+				</section>
+
+				<section>
+					<section>
+					<h2>CPU C and P states</h2>
+                    <p>How does it really work?</p>
+                    <ol>
+                        <li>C-states<ul>
+                                <li>Put parts of CPU into idle state</li>
+                                <li>Switch off clock</li>
+                                <li>Switch off power</li>
+                                <li>No instructions executed</li>
+                            </ul></li>
+                        <li>P-states<ul>
+                                <li>running the processor at different voltage</li>
+                                <li>dynamic CPU clock frequency</li>
+                            </ul></li>
+                    </ol>
+					</section>
+					<section>
+                        <pre># cpupower idle-info<code class="hljs" data-trim contenteditable>
+Number of idle states: 5
+Available idle states: POLL C1-HSW C1E-HSW C3-HSW C6-HSW
+POLL:
+Flags/Description: CPUIDLE CORE POLL IDLE
+Latency: 0
+Usage: 29755
+Duration: 3835978545
+C1-HSW:
+Flags/Description: MWAIT 0x00
+Latency: 2
+Usage: 6798684
+Duration: 113394905502
+C1E-HSW:
+Flags/Description: MWAIT 0x01
+Latency: 10
+Usage: 139239
+Duration: 87988731
+C3-HSW:
+Flags/Description: MWAIT 0x10
+Latency: 33
+Usage: 319395
+Duration: 400376864
+C6-HSW:
+Flags/Description: MWAIT 0x20
+Latency: 133
+Usage: 18835524
+Duration: 651965327288
+                        </code></pre>
+					</section>
+					<section>
+					    <h2>cpupower</h2>
+                        <p class="fragment fade-up">Values from /sys/devices/system/cpu/cpu*/cpuidle/</p>
+                        <p class="fragment fade-up">cat /sys/devices/system/cpu/cpu0/cpuidle/state*/latency</p>
+					</section>
+					<section>
+                        <p>
+                        <img data-src="img/c-state-exit.png" alt="">
+                        <ol>
+                            <li>These C-State Entry/Exit Latencies are Intel estimates only and not processor specifications.</li>
+                            <li>It is assumed that package is in C0 when one of the core is active.</li>
+                            <li>Fast interrupt break mode is enabled if MSR_POWER_CTL.[4] = 1.</li>
+                        <ol>
+                        </p>
+					</section>
+					<section>
+					    <h2>What we can do about this?</h2>
+                        <p>We don't want that latency</p>
+                        <p class="fragment fade-up">BIOS settings</p>
+                        <p class="fragment fade-up">Kernel params: processor.max_cstate=0 intel_idle.max_cstate=0</p>
+                        <p class="fragment fade-up">/sys/devices/system/cpu/cpu*/cpuidle/state*/disable</p>
+					</section>
+				</section>
+
+                <section>
+                <section>
+					<h2>blktrace</h2>
+                    <p class="fragment fade-up">So what is blktrace?</p>
+                    <p class="fragment fade-up">iostat on steroids</p>
+                    <p class="fragment fade-up">Kind of strace for kernel IO subsystem</p>
+                    <p class="fragment fade-up">It generates traces of the I/O traffic on block devices</p>
+				</section>
+
+                <section>
+					<h2>blktrace</h2>
+					<pre>Simple usage example:<code class="hljs" data-trim contenteditable>
+mkdir /home/blktrace_data 
+mount -t tmpfs -o size=4G tmpfs /home/blktrace_data 
+cd /home/blktrace_data 
+blktrace -d /dev/sda -o blktrace.sda 
+					</code></pre>
+				</section>
+
+                <section>
+					<h2>blktrace</h2>
+					<p>Process collected data with blkparse and btt</p>
+					<pre>Output example:<code class="hljs" data-trim contenteditable>
+8,0   21 42   1.062957473 13346  I  WS 6298096 + 1024 [mysqld]
+8,0   21 43   1.062957727 13346  I  WS 6299120 + 1024 [mysqld]
+8,0   38 3    1.084362511 10509  Q  WS 745497296 + 16 [mongod]
+8,0   38 8    1.084367140 10509  D  WS 745497296 + 16 [mongod]
+8,0   22 2    1.138026726 13346  Q WSM 4738447 + 7 [mysqld]
+8,0   22 3    1.138027999 13346  G WSM 4738447 + 7 [mysqld]
+8,0   22 5    1.138029018 13346  I WSM 4738447 + 7 [mysqld]
+8,0   1  1904 1.138074893   930  D   W 67843304 + 8 [systemd-journal]
+					</code></pre>
+				</section>
+
+
+                <section>
+					<h2>blktrace - how to read that cryptic staff?!</h2>
+					<pre>blktrace_api.h - trace actions<code class="hljs" data-trim contenteditable>
+Q  __BLK_TA_QUEUE ,  	  /* queued */
+B  __BLK_TA_BACKMERGE,    /* back merged to existing rq */
+F  __BLK_TA_FRONTMERGE,   /* front merge to existing rq */
+G  __BLK_TA_GETRQ,        /* allocated new request */
+S  __BLK_TA_SLEEPRQ,      /* sleeping on rq allocation */
+R  __BLK_TA_REQUEUE,      /* request requeued */
+I  __BLK_TA_ISSUE,        /* sent to driver */
+C  __BLK_TA_COMPLETE,     /* completed by driver */
+P  __BLK_TA_PLUG,         /* queue was plugged */
+U  __BLK_TA_UNPLUG_IO,    /* queue was unplugged by io */
+T  __BLK_TA_UNPLUG_TIMER, /* queue was unplugged by timer */
+   __BLK_TA_INSERT,       /* insert request */
+   __BLK_TA_SPLIT,        /* bio was split */
+   __BLK_TA_BOUNCE,       /* bio was bounced */
+R  __BLK_TA_REMAP,        /* bio was remapped */
+A  __BLK_TA_ABORT,        /* request aborted */
+   __BLK_TA_DRV_DATA,     /* binary driver data */
+
+
+              barrier: barrier attribute
+              complete: completed by driver
+              fs: requests
+              issue: issued to driver
+              pc: packet command events
+              queue: queue operations
+              read: read traces
+              requeue: requeue operations
+              sync: synchronous attribute
+              write: write traces
+              notify: trace messages
+              drv_data: additional driver specific trace
+
+
+					</code></pre>
+				</section>
+
+                <section>
+					<h2>blktrace - how to read that cryptic staff?!</h2>
+					<pre>blktrace_api.h - trace categories<code class="hljs" data-trim contenteditable>
+R     BLK_TC_READ     /* reads */
+W     BLK_TC_WRITE    /* writes */
+F     BLK_TC_FLUSH    /* flush */
+S     BLK_TC_SYNC     /* sync */
+Q     BLK_TC_QUEUE    /* queueing/merging */
+      BLK_TC_REQUEUE  /* requeueing */
+I     BLK_TC_ISSUE    /* issue */
+C     BLK_TC_COMPLETE /* completions */
+      BLK_TC_FS       /* fs requests */
+P     BLK_TC_PC       /* pc requests */
+N     BLK_TC_NOTIFY   /* special message */
+A     BLK_TC_AHEAD    /* readahead */
+M     BLK_TC_META     /* metadata */
+D     BLK_TC_DISCARD  /* discard requests */
+      BLK_TC_DRV_DATA /* binary driver data */
+U     BLK_TC_FUA      /* fua requests */
+E     BLK_TC_END      /* we've run out of bits! */
+					</code></pre>
+				</section>
+				</section>
+
+                <section>
+                    <section>
+	    				<h3>Controller sum(IOPS)/process</h3>
+                        <p>
+                            <img data-src="img/io_total.png"
+                                 alt="Controllers total IOPS">
+                            <small>Collected over 6h</small>
+                        </p>
+                    </section>
+    
+                    <section>
+	    				<h3>Controller sum(read req)/process</h3>
+                        <p>
+                            <img data-src="img/io_read.png" alt="">
+                            <small>Collected over 6h</small>
+                        </p>
+                    </section>
+                    <section>
+	        		    <h3>Controller sum(wr req)/process</h3>
+                        <p>
+                            <img data-src="img/io_write.png" alt="">
+                            <small>Collected over 6h</small>
+                        </p>
+                    </section>
+                    <section>
+	    	    	    <h3>Controller read/write ratio</h3>
+                        <p>
+                        <img data-src="img/io_rw.png" alt="">
+                        <small>Collected over 6h:
+                               sum(total IOPS) vs sum(read IOPS)
+                               vs sum(write IOPS)</small>
+                        </p>
+                    </section>
+                </section>
+
+                <section>
+					<h2>Conclusions</h2>
+                    <p class="fragment fade-up">Very specific workload, mostly writes</p>
+                    <p class="fragment fade-up">And the winners are: MariaDB and MongoDB</p>
+                </section>
+
+                <section>
+					<h2>What we can do about this?</h2>
+                    <p>MariaDB
+					<ul>
+					    <li>Disable binary logs</li>
+                        <li>innodb-flush-log-at-trx-commit=2 <small>default=1
+                                full ACID (Atomicity, Consistency, Isolation,
+                                Durability) compliance</small></li>
+                        <!-- https://www.percona.com/blog/2014/11/17/typical-misconceptions-on-galera-for-mysql -->
+					</ul>
+                    </p>
+                    
+                </section>
+
+				<section>
+					<h2>Key takeaways</h2>
+                    <p>Load/context switching</p>
+                    <p>Hyper-Threading</p>
+                    <p>API workers</p>
+                    <p>CPU C and P states</p>
+                    <p>blktrace</p>
+                    <p>Controllers' workload characteristics</p>
+				</section>
+                <section>
+                    <h1>Q&A</h1>
+                </section>
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+                slideNumber: true,
+
+				// transition: 'slide', // none/fade/slide/convex/concave/zoom
+                transition: 'convex',
+                transitionSpeed: 'slow',
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
