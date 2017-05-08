@@ -47,20 +47,26 @@
                     <h2>Advanced controller optimization<h2>
                     <h4>How to get the most of your controllers?</h4>
 					<p>
-						<small>by Radosław Śmigielski /
-                            <a href="https://twitter.com/radoslaws">@radoslaws</a>
-                    </p>
-                    <p>
-                            <a href='https://www.openstack.org/summit/boston-2017/summit-schedule/events/17489/advanced-controller-optimization-how-to-get-the-most-of-your-controllers'>OpenStack session schedule</a>
+                    <small>by Radosław Śmigielski/<a href="https://twitter.com/radoslaws">@radoslaws</a>/<a href="https://plus.google.com/+RadoslawSmigielski">G+</a>
+                        at <a href="https://networks.nokia.com/products/cloudband">Nokia CloudBand CBIS</a>
                         </small>
+                    </p>
+                    <!--
+                    <p><small>
+                        <a href='https://www.openstack.org/summit/boston-2017/summit-schedule/events/17489/advanced-controller-optimization-how-to-get-the-most-of-your-controllers'>OpenStack session</a></small>
 					</p>
+                    -->
 				</section>
 
 				<section>
 					<h2>Why this talk?</h2>
-                    <p class="fragment fade-up">Know your workload!</p>
-                    <p class="fragment fade-up">What the hell my controller is doing?</p>
-                    <p class="fragment fade-up">Default out of the box configs just work but are these optimal for you?</p>
+                    <p class="fragment fade-up">OpenStack is complex</p>
+                    <p class="fragment fade-up">OpenStack performance is even more complex</p>
+                    <p class="fragment fade-up">Share experiences</p>
+                    <p class="fragment fade-up">What the hell my controller plane is doing?</p>
+                    <p class="fragment fade-up">Default out of the box configs</p>
+                    <p class="fragment fade-up">Tips and tricks</p>
+                    <p class="fragment fade-up">Why and how?</p>
                     <p class="fragment fade-up">All apologies - agenda adjustments</p>
 				</section>
 
@@ -68,16 +74,16 @@
 					<h2>My platform</h2>
 					<ul>
 						<li>Real hardware</li>
-						<li>Installed with TripleO</li>
 						<li>72 servers in 2 racks</li>
-						<li>1 infrastructure server (undercloud)</li>
-						<li>3 controllers</li>
-						<li>68 computes</li>
 						<li>Nokia Airframe servers</li>
 					    <ul>
                             <li>48 CPU with Hyper-Threading enabled</li>
                             <li>256G RAM</li>
                         </ul>
+						<li>Installed with TripleO</li>
+						<li>1 infrastructure server (undercloud)</li>
+						<li>Standard 3 controllers setup</li>
+						<li>68 computes</li>
 					</ul>
 				</section>
 
@@ -88,60 +94,66 @@
 					    <ul>
                             <li>1 - 4 vCPU</li>
                             <li>512M - 2G RAM</li>
-		    				<li>Cirros/CentOS/Fedora 24 images</li>
+		    				<li>Cirros/CentOS 7/Fedora 24 cloud images</li>
 			    			<li>4 - 8 NICc connected to each VM</li>
-			    			<li>Connected to IPv6 and IPv4 network</li>
+			    			<li>Mixed stack IPv6 and IPv4 network</li>
                         </ul>
                         </li>
                         <li>Heat complex stacks</li>
                         <li>Burst VMs creation 100/200/300/400</li>
+                        <li>3000-3500 VMs</li>
 					</ol>
 				</section>
 
                 <section>
-					<h2>CPU Hyper-Threading</h2>
-					<p>On idle controller I've got:
+					<h2>Fitst look</h2>
+					<p>Idle single controller
 					    <ul>
-                            <li>Idle controller load 4-10</li>
-                            <li>Between 40-50k CPU context switches per second</li>
                             <li>Over 1100 existing tasks (processes, threads)</li>
+                            <li>Controller load 4-15</li>
+                            <li>Between 40-50k CPU context switches per second</li>
                         </ul>
                     </p>
 				</section>
 
 				<section>
-					<h2>Load on controllers</h2>
-                    <p><img data-src="img/controller0.load.png" alt="">
-                    <img data-src="img/controller1.load.png" alt=""></p>
-				</section>
-				<section>
-					<h2>Processes on controllers</h2>
-                    <p><img data-src="img/controller0.all.tasks.png" alt="">
-                    <img data-src="img/controller1.all.tasks.png" alt=""></p>
+    				<section>
+	    				<h2>Load on controllers</h2>
+                        <p><img data-src="img/controller0.load.png" alt="">
+                        <img data-src="img/controller1.load.png" alt=""></p>
+    				</section>
+	    			<section>
+		    			<h2>Processes on controllers</h2>
+                        <p><img data-src="img/controller0.all.tasks.png" alt="">
+                        <img data-src="img/controller1.all.tasks.png" alt=""></p>
+    				</section>
+				    <section>
+					    <h2>Running processes</h2>
+                        <p><img data-src="img/controller0.running.tasks.png" alt="">
+                        <img data-src="img/controller0.running.tasks.png" alt=""></p>
+                        <p><small>* We have 48 CPUs</br>
+                                  ** Graph scaled to 48 CPUs</small></p>
+				    </section>
 				</section>
 
-				<section>
-					<h2>Running processes</h2>
-                    <p><img data-src="img/controller0.running.tasks.png" alt="">
-                    <img data-src="img/controller0.running.tasks.png" alt=""></p>
-                    <p><small>* We have 48 CPUs</br>
-                              ** Graph scaled to 48 CPUs</small></p>
-				</section>
+
 				<section>
 				    <section>
-					<h2>Reduce number of API workers</h2>
-                    <p class="fragment fade-up">
+					<h2>Reduce number of API workers?</h2>
+                    <p>
                     <img data-src="img/what-did-you-say_new.jpg" alt=""></p>
-                    <p class="fragment fade-up">
+                    <p>
                         Sounds controversial, isn't it?</p>
 				    </section>
 
 				    <section>
-                      <h2>After wokers reduction</h2>
-                      <p class="fragment fade-up">Reduce number of tasks to 800 (processes, threads)</p>
-                      <p class="fragment fade-up">CPU context switches dropped to 10-25k</p>
-                      <p class="fragment fade-up">Reduce load of idle controller by half (!!!)</p>
-                      <p class="fragment fade-up">No difference in speed of API responses</p>
+                      <h2>After reduction by half</h2>
+                      <p>Reduce number of tasks to 900 (processes, threads)</p>
+                      <p>CPU context switches dropped to 10-25k</p>
+                      <p>Reduce load of idle controller by half (!!!)</p>
+                      <p>No difference in speed of API responses</p>
+                      <p>Still could handle over 600 concurrent API requests</p>
+                      <p>Exception: keystone (*)</p>
 				    </section>
 				</section>
 
@@ -161,40 +173,30 @@
     				</section>
 
 		    		<section>
-			    		<h2>CPU Hyper-Threading</h2>
-                        <p>How does it really work?</p>
+                        <h1>How does HT really work?</h1>
     				</section>
 
 					<section>
 					    <h2>CPU Hyper-Threading</h2>
-                        <p><small> Intel Intel® 64 and IA-32 Architectures
+                        <p><small>Intel® 64 and IA-32 Architectures
                             Software Developer’s Manual</small></p>
                         <img data-src="img/CPU_HT.png" alt="CPU HT">
 					</section>
 					<section>
-                        <p>
-                        Hyper-Threaded CPU core split into two logical cores
-                           each of which has its own processor architectural
-                           state. Each logical processor can be individually
-                           halted, interrupted or directed to execute
-                           a specified thread, independently from the other
-                           logical processor sharing the same physical core.[7]
-
-                           logical processors in a hyper-threaded core share the execution resources
-                        </p>
-					</section>
-
-					<section>
 					    <ul>
+                            <li>Two logical proccessors</li>
+                            <li>Single execution engine - shared the execution resources</li>
+                            <li>Each logical CPU  has own set of regs</li>
+                            <li>Share L1 cache</li>
+                            <li>Common power saving</li>
                             <li>Hardware support for context switching</li>
                             <li>Still computationally expensive on Intel arch</li>
                         </ul>
 					</section>
-				</section>
-
-				<section>
-					<h2>Controller HT on/off</h2>
-                    <p><img data-src="img/cs_ht_on_off.png" alt=""/></p>
+    				<section>
+	    				<h2>Controller HT on/off</h2>
+                        <p><img data-src="img/cs_ht_on_off.png" alt=""/></p>
+			    	</section>
 				</section>
 
 
@@ -209,20 +211,23 @@
                         </code></pre>
                         <p style="text-align: left;"><small>(*) Exception?</small></p>
 				    </section>
-				    <section>
-                        <h2>Keystone workers</h2>
-                        <p>How does it really work?</p>
-                        <img data-src="img/Keystone_WSGI_arch.png" alt=""/>
-                        <p style="text-align: left;"><small>WSGI - Web Server Gateway Interface</small></p>
-                    </section>
                     <section>
                         <h2>Why KS new architecture?</h2>
                         <p class="fragment fade-up">Doing multiprocess/multithread apps is tough</p>
                         <p class="fragment fade-up">Python GIL does not make things easier</p>
-                        <p class="fragment fade-up">Python concurrency frameworks suck on computation intensive workload</p>
+                        <p class="fragment fade-up">Python concurrency frameworks don't work on computation intensive workload</p>
                         <p class="fragment fade-up">CPU intensive PKI and Fernet token formats</p>
-                        <p class="fragment fade-up">Apache and other web servers have solved this problem</p>
+                        <p class="fragment fade-up">Web servers have solved this problem</p>
                     </section>
+				    <section>
+                        <h2>Keystone new architecture</h2>
+                        <img data-src="img/Keystone_WSGI_arch.png" alt=""/>
+                        <p style="text-align: left;"><small>WSGI - Web Server Gateway Interface</small></p>
+                    </section>
+				    <section>
+                        <img data-src="img/wqpgw.jpg" alt=""  style="height: 80%; max-height: 600px;"/>
+                    </section>
+
                     <section>
                     <h2>New configuration</h2>
                     <pre>/etc/httpd/conf.d/10-keystone_wsgi_admin.conf<code class="hljs" data-trim contenteditable>
@@ -242,6 +247,7 @@
                         threads=1 \
                         user=keystone
                     </code></pre>
+                    <p>And more OpenStack services heading this direction</p>
 				    </section>
 				</section>
 
@@ -263,28 +269,67 @@
                     </ol>
 					</section>
 					<section>
+                        <pre># cpupower idle-info<code class="hljs" data-trim contenteditable>
+Number of idle states: 5
+Available idle states: POLL C1-HSW C1E-HSW C3-HSW C6-HSW
+POLL:
+Flags/Description: CPUIDLE CORE POLL IDLE
+Latency: 0
+Usage: 29755
+Duration: 3835978545
+C1-HSW:
+Flags/Description: MWAIT 0x00
+Latency: 2
+Usage: 6798684
+Duration: 113394905502
+C1E-HSW:
+Flags/Description: MWAIT 0x01
+Latency: 10
+Usage: 139239
+Duration: 87988731
+C3-HSW:
+Flags/Description: MWAIT 0x10
+Latency: 33
+Usage: 319395
+Duration: 400376864
+C6-HSW:
+Flags/Description: MWAIT 0x20
+Latency: 133
+Usage: 18835524
+Duration: 651965327288
+                        </code></pre>
+					</section>
+					<section>
+					    <h2>cpupower</h2>
+                        <p class="fragment fade-up">Values from /sys/devices/system/cpu/cpu*/cpuidle/</p>
+                        <p class="fragment fade-up">cat /sys/devices/system/cpu/cpu0/cpuidle/state*/latency</p>
+					</section>
+					<section>
                         <p>
                         <img data-src="img/c-state-exit.png" alt="">
                         <ol>
                             <li>These C-State Entry/Exit Latencies are Intel estimates only and not processor specifications.</li>
                             <li>It is assumed that package is in C0 when one of the core is active.</li>
-                                <li>Fast interrupt break mode is enabled if MSR_POWER_CTL.[4] = 1.</li>
+                            <li>Fast interrupt break mode is enabled if MSR_POWER_CTL.[4] = 1.</li>
                         <ol>
                         </p>
 					</section>
+					<section>
+					    <h2>What we can do about this?</h2>
+                        <p>We don't want that latency</p>
+                        <p class="fragment fade-up">BIOS settings</p>
+                        <p class="fragment fade-up">Kernel params: processor.max_cstate=0 intel_idle.max_cstate=0</p>
+                        <p class="fragment fade-up">/sys/devices/system/cpu/cpu*/cpuidle/state*/disable</p>
+					</section>
 				</section>
 
-				<section>
-					<h2>CPU C and P states</h2>
-                    <p>processor.max_cstate=0 intel_idle.max_cstate=0</p>
-				</section>
-
-
+                <section>
                 <section>
 					<h2>blktrace</h2>
                     <p class="fragment fade-up">So what is blktrace?</p>
-                    <p class="fragment fade-up">It generates traces of the I/O traffic on block devices</p>
+                    <p class="fragment fade-up">iostat on steroids</p>
                     <p class="fragment fade-up">Kind of strace for kernel IO subsystem</p>
+                    <p class="fragment fade-up">It generates traces of the I/O traffic on block devices</p>
 				</section>
 
                 <section>
@@ -365,38 +410,80 @@ I     BLK_TC_ISSUE    /* issue */
 C     BLK_TC_COMPLETE /* completions */
       BLK_TC_FS       /* fs requests */
 P     BLK_TC_PC       /* pc requests */
-N(?)  BLK_TC_NOTIFY   /* special message */
+N     BLK_TC_NOTIFY   /* special message */
 A     BLK_TC_AHEAD    /* readahead */
 M     BLK_TC_META     /* metadata */
 D     BLK_TC_DISCARD  /* discard requests */
       BLK_TC_DRV_DATA /* binary driver data */
 U     BLK_TC_FUA      /* fua requests */
-E(?)  BLK_TC_END      /* we've run out of bits! */
+E     BLK_TC_END      /* we've run out of bits! */
 					</code></pre>
 				</section>
-
-                <section>
-					<h2>blktrace - how to read that cryptic staff?!</h2>
-                    <p>
-					<ul>
-						<li>FUA - Forced Unit Access. The REQ_FUA flag (...)
-							will make sure that I/O completion for this request
-							is only signaled after the data has been committed
-							to non-volatile storage.</li>
-					</ul>
-					</p>
 				</section>
 
                 <section>
-                    ????
+                    <section>
+	    				<h3>Controller sum(IOPS)/process</h3>
+                        <p>
+                            <img data-src="img/io_total.png"
+                                 alt="Controllers total IOPS">
+                            <small>Collected over 6h</small>
+                        </p>
+                    </section>
+    
+                    <section>
+	    				<h3>Controller sum(read req)/process</h3>
+                        <p>
+                            <img data-src="img/io_read.png" alt="">
+                            <small>Collected over 6h</small>
+                        </p>
+                    </section>
+                    <section>
+	        		    <h3>Controller sum(wr req)/process</h3>
+                        <p>
+                            <img data-src="img/io_write.png" alt="">
+                            <small>Collected over 6h</small>
+                        </p>
+                    </section>
+                    <section>
+	    	    	    <h3>Controller read/write ratio</h3>
+                        <p>
+                        <img data-src="img/io_rw.png" alt="">
+                        <small>Collected over 6h:
+                               sum(total IOPS) vs sum(read IOPS)
+                               vs sum(write IOPS)</small>
+                        </p>
+                    </section>
                 </section>
 
+                <section>
+					<h2>Conclusions</h2>
+                    <p class="fragment fade-up">Very specific workload, mostly writes</p>
+                    <p class="fragment fade-up">And the winners are: MariaDB and MongoDB</p>
+                </section>
+
+                <section>
+					<h2>What we can do about this?</h2>
+                    <p>MariaDB
+					<ul>
+					    <li>Disable binary logs</li>
+                        <li>innodb-flush-log-at-trx-commit=2 <small>default=1
+                                full ACID (Atomicity, Consistency, Isolation,
+                                Durability) compliance</small></li>
+                        <!-- https://www.percona.com/blog/2014/11/17/typical-misconceptions-on-galera-for-mysql -->
+					</ul>
+                    </p>
+                    
+                </section>
 
 				<section>
 					<h2>Key takeaways</h2>
-                    <p class="fragment fade-up">Someting what you know but you've never read it that way? [top]</p>
-                    <p class="fragment fade-up">[hyperthreading]</p>
-                    <p class="fragment fade-up">OpenStack services' workers</p>
+                    <p>Load/context switching</p>
+                    <p>Hyper-Threading</p>
+                    <p>API workers</p>
+                    <p>CPU C and P states</p>
+                    <p>blktrace</p>
+                    <p>Controllers' workload characteristics</p>
 				</section>
                 <section>
                     <h1>Q&A</h1>
